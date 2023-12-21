@@ -7,14 +7,6 @@ def has_special_character(characters: [str]) -> bool:
             return True
     return False
 
-
-@dataclass
-class Character:
-    line_index: int
-    character_index: int
-    character: str
-
-
 @dataclass
 class Grid:
     CHARACTERS = "%$@&#/-+*="
@@ -26,6 +18,8 @@ class Grid:
             self.map = f.readlines()
 
     def get_character(self, y: int, x: int) -> str:
+        if y == -1 or x == -1:
+            return '.'
         try:
             return self.map[y][x]
         except IndexError:
@@ -37,7 +31,7 @@ class Grid:
     def get_characters_around(self, y: int, x: int) -> [str]:
         directions = [
             (-1, -1), (-1, 0), (-1, 1),
-            (0, -1), (0, 1),
+            (0, -1),          (0, 1),
             (1, -1), (1, 0), (1, 1),
         ]
         characters = []
@@ -53,29 +47,21 @@ class Grid:
             index = index + 1
         return int(''.join(number))
 
-    def get_numbers_with_position(self, y: int, x: int) -> [Character]:
-        index = x
-        number = []
-        while self.is_digit(y, index):
-            character = self.get_character(y, index)
-            number.append(Character(y, index, character))
-            index = index + 1
-        return number
-
 
 def main():
     grid = Grid('text.txt')
 
     numbers_list = []
     for index_y, line in enumerate(grid.map):
-        for index_x, character in enumerate(line):
+        for index_x, _ in enumerate(line):
             if grid.is_digit(index_y, index_x) and not grid.is_digit(index_y, index_x - 1):
-                number = [grid.get_number(index_y, index_x)]
+                number = grid.get_number(index_y, index_x)
                 number_length = len(str(number))
-                for int, index in enumerate(number):
-                    character_around = grid.get_characters_around(index_y, index_x + int)
+                for i, index in enumerate(range(number_length)):
+                    character_around = grid.get_characters_around(index_y, index_x + i)
                     if has_special_character(character_around):
-                        numbers_list.append(number[0])
+                        numbers_list.append(number)
+                        break
     numbers_sum = sum(numbers_list)
     print(numbers_sum)
 
