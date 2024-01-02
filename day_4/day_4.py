@@ -7,12 +7,16 @@ class Card:
     other_numbers: [int]
     card_point: int
     line: str
+    copies: int
+    matching_numbers: int
 
     def __init__(self, line: str):
         self.winning_numbers = []
         self.other_numbers = []
         self.card_point = 0
         self.line = line
+        self.copies = 1
+        self.matching_numbers = 0
 
         self.compute()
 
@@ -37,20 +41,48 @@ class Card:
             else:
                 self.card_point = self.card_point * 2
 
+    def compute_matching_numbers(self, number):
+        if self.is_winning_number(number):
+            self.matching_numbers += 1
+
+    def add_copy(self):
+        self.copies += 1
+
+
+@dataclass
+class Cards:
+    cards: [Card]
+
+    def __init__(self, lines: [str]):
+        self.cards = []
+        for line in lines:
+            self.cards.append(Card(line))
+
+    def sum_cards_point(self) -> int:
+        return sum(c.card_point for c in self.cards)
+
+    def sum_cards_copies(self) -> int:
+        return sum(c.copies for c in self.cards)
+
 
 def main():
     with open('text.txt') as f:
-        cards = f.readlines()
-        cards_point = 0
+        lines = f.readlines()
+        cards = Cards(lines)
 
-        for line in cards:
-            card = Card(line)
+        for index, card in enumerate(cards.cards):
+            increment = 0
             other_numbers = card.other_numbers
             for number in other_numbers:
                 card.update_card_point(number)
-            cards_point = cards_point + card.card_point
+                card.compute_matching_numbers(number)
+            while increment < card.copies:
+                for i in range(card.matching_numbers):
+                    cards.cards[index + i + 1].add_copy()
+                increment += 1
 
-        print(cards_point)
+        print('result part 1 :', cards.sum_cards_point())
+        print('result part 2 :', cards.sum_cards_copies())
 
 
 if __name__ == '__main__':
